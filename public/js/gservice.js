@@ -11,7 +11,6 @@ angular.module('gservice', [])
 
         // Array of locations obtained from API calls
         var locations = [];
-        var links = [];
 
         // Variables we'll use to help us pan to the right spot
         var lastMarker;
@@ -37,8 +36,8 @@ angular.module('gservice', [])
             if (filteredResults){
 
                 // Then convert the filtered results into map points.
-                locations = convertToMapPoints(filteredResults.users);                
-                lines = convertToMapLines(response.users, response.links);
+                locations = convertToMapPoints(filteredResults);
+
                 // Then, initialize the map -- noting that a filter was used (to mark icons yellow)
                 initialize(latitude, longitude, true);
             }
@@ -50,25 +49,13 @@ angular.module('gservice', [])
                 $http.get('/users').success(function(response){
 
                     // Then convert the results into map points
-                    locations = convertToMapPoints(response.users);
-                    lines = convertToMapLines(response.users, response.links);
+                    locations = convertToMapPoints(response);
+
                     // Then initialize the map -- noting that no filter was used.
                     initialize(latitude, longitude, false);
                 }).error(function(){});
             }
         };
-
-        var convertToMapLines = function(users, links){
-            var ret = [];
-            var anchor = users.find((user)=>{return user.username== 'Bill Gates'});
-            links.forEach(function (link){
-                var u = users.find((user)=>{return user.username == link['id']});
-                ret.push([{lat: anchor.location[1],lng: anchor.location[0]},
-                            {lat: u.location[1], lng: u.location[0]}]);       
-                 
-            })
-            return ret;
-        }
 
         // Private Inner Functions
         // --------------------------------------------------------------
@@ -78,7 +65,7 @@ angular.module('gservice', [])
 
             // Clear the locations holder
             var locations = [];
-            
+
             // Loop through all of the JSON entries provided in the response
             for(var i= 0; i < response.length; i++) {
                 var user = response[i];
@@ -113,9 +100,7 @@ angular.module('gservice', [])
             this.age = age;
             this.favlang = favlang
         };
-        var Link = function(path){
-            this.path = path;
-        };
+
         // Initializes the map
         var initialize = function(latitude, longitude, filter) {
 
@@ -128,8 +113,7 @@ angular.module('gservice', [])
                 // Create a new map and place in the index.html page
                 var map = new google.maps.Map(document.getElementById('map'), {
                     zoom: 3,
-                    center: myLatLng,
-                    mapTypeId : google.maps.MapTypeId.ROADMAP
+                    center: myLatLng
                 });
             }
 
@@ -156,17 +140,6 @@ angular.module('gservice', [])
                     // When clicked, open the selected marker's message
                     currentSelectedMarker = n;
                     n.message.open(map, marker);
-                });
-            });
-
-            lines.forEach(function(n,i){
-                var line = new google.maps.Polyline({
-                    map: map,
-                    path: n,
-                    geodesic: true,
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 1.0,
-                    strokeWeight: 2
                 });
             });
 
