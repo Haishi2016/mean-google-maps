@@ -2,6 +2,8 @@
 var mongoose        = require('mongoose');
 var User            = require('./model.js');
 
+var gremlin = require('gremlin-secure');
+
 
 // Opens App Routes
 module.exports = function(app) {
@@ -17,8 +19,12 @@ module.exports = function(app) {
             if(err)
                 res.send(err);
 
-            // If no errors are found, it responds with a JSON of all users
-            res.json(users);
+            var GremlinClient = gremlin.createClient(443, 'peoplegraph.graphs.azure.com', {"session": false, "ssl":true, "user": "/dbs/graphdb/colls/people", "password": "ljWkiOtXQstgT6sWcjeFOF8ZW5knZpRMIRIE3QmCeQ0bFbL82kLuPdxsbnV4Ic5cOJhlFk1luzKOwLwZdWZDJw=="});
+            
+            GremlinClient.execute("g.V('Bill Gates').out('knows')",{}, (err, results) =>{
+                // If no errors are found, it responds with a JSON of all users
+                res.json({"users":users, "links": results});
+            });
         });
     });
 
@@ -98,9 +104,14 @@ module.exports = function(app) {
         query.exec(function(err, users){
             if(err)
                 res.send(err);
-
-            // If no errors, respond with a JSON of all users that meet the criteria
-            res.json(users);
+            
+            var GremlinClient = gremlin.createClient(443, 'peoplegraph.graphs.azure.com', {"session": false, "ssl":true, "user": "/dbs/graphdb/colls/people", "password": "ljWkiOtXQstgT6sWcjeFOF8ZW5knZpRMIRIE3QmCeQ0bFbL82kLuPdxsbnV4Ic5cOJhlFk1luzKOwLwZdWZDJw=="});
+            
+            GremlinClient.execute("g.V('Bill Gates').out('knows')",{}, (err, results) =>{
+                // If no errors are found, it responds with a JSON of all users
+                res.json({"users":users, "links": results});
+            });
+            
         });
     });
 
